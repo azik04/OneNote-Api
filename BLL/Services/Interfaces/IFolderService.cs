@@ -1,5 +1,4 @@
 ﻿using Domain.DTO_s.Folders;
-using Domain.DTO_s.Notes;
 using Domain.Responses;
 
 namespace BLL.Services.Interfaces;

@@ -1,13 +1,12 @@
-﻿namespace DAL.Repositories
+﻿namespace DAL.Repositories;
+
+public interface IBaseRepository<T>
 {
-    public interface IBaseRepository<T>
-    {
-        Task<bool> Create(T entity);
+    Task<bool> Create(T entity);
 
-        IQueryable<T> GetAll();
+    IQueryable<T> GetAll();
 
-        Task<bool> Delete(T entity);
+    Task<bool> Delete(T entity);
 
-        Task<T> Update(T entity);
-    }
+    Task<T> Update(T entity);
 }

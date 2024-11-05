@@ -7,7 +7,8 @@ namespace BLL.Services.Interfaces;
 public interface IUserService
 {
     public Task<IBaseResponse<GetUserDTO>> Create(CreateUserDTO vm);
-    public Task<IBaseResponse<ICollection<GetUserDTO>>> GetAll();
+    public Task<IBaseResponse<ICollection<GetUserDTO>>> GetAdmins();
+    public Task<IBaseResponse<ICollection<GetUserDTO>>> GetUsers();
     public Task<IBaseResponse<GetUserDTO>> GetById(long id);
     public Task<IBaseResponse<GetUserDTO>> Delete(long id);
     public Task<IBaseResponse<GetUserDTO>> Update(long id ,UpdateUserDTO vm);

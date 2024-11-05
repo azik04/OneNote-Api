@@ -13,11 +13,13 @@ public class FolderService : IFolderService
     private readonly IBaseRepository<Folders> _rep;
     private readonly IBaseRepository<Sections> _srep;
 
+
     public FolderService(IBaseRepository<Folders> rep, IBaseRepository<Sections> srep)
     {
         _rep = rep;
         _srep = srep;
     }
+
 
     public async Task<IBaseResponse<GetFolderDTO>> Create(FolderDTO vm)
     {
@@ -81,6 +83,7 @@ public class FolderService : IFolderService
         }
     }
 
+
     public async Task<IBaseResponse<ICollection<GetFolderDTO>>> GetAll()
     {
         try
@@ -115,6 +118,7 @@ public class FolderService : IFolderService
         }
     }
 
+
     public async Task<IBaseResponse<ICollection<GetFolderDTO>>> GetBySection(long sectionId)
     {
         try
@@ -148,6 +152,7 @@ public class FolderService : IFolderService
             };
         }
     }
+
 
     public async Task<IBaseResponse<GetFolderDTO>> GetById(long id)
     {
@@ -192,6 +197,7 @@ public class FolderService : IFolderService
         }
     }
 
+
     public async Task<IBaseResponse<GetFolderDTO>> Remove(long id)
     {
         try
@@ -210,6 +216,7 @@ public class FolderService : IFolderService
 
             data.IsDeleted = true;
             data.DeleteAt = DateTime.UtcNow;
+            await _rep.Delete(data);
 
             Log.Information("Folder {FolderId} successfully removed", data.Id);
 
@@ -235,6 +242,7 @@ public class FolderService : IFolderService
             };
         }
     }
+
 
     public async Task<IBaseResponse<GetFolderDTO>> Update(long Id, FolderDTO vm)
     {

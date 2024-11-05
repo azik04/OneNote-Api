@@ -4,15 +4,14 @@ using OneNote_Api;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 
-builder.Services.AddControllers().AddFluentValidation(opt =>
-{
-    opt.RegisterValidatorsFromAssemblyContaining<Program>();
-});
+builder.Services.AddControllers()
+    .AddFluentValidation(fv =>
+    {
+        fv.RegisterValidatorsFromAssemblyContaining<Program>();
+    });
 
-
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -48,21 +47,19 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.InitializeRepositories();
 builder.Services.InitializeServices();
 builder.Services.Initialize(builder.Configuration);
-
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
-
-app.UseCors();
+app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseCors("MyCors");
 
 app.UseAuthentication();
 

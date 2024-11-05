@@ -12,10 +12,12 @@ public class SectionService : ISectionService
 {
     private readonly IBaseRepository<Sections> _rep;
 
+
     public SectionService(IBaseRepository<Sections> rep)
     {
         _rep = rep;
     }
+
 
     public async Task<IBaseResponse<GetSectionDTO>> Create(SectionDTO vm)
     {
@@ -55,6 +57,7 @@ public class SectionService : ISectionService
         }
     }
 
+
     public async Task<IBaseResponse<ICollection<GetSectionDTO>>> GetAll()
     {
         Log.Information("Retrieving all sections");
@@ -87,6 +90,7 @@ public class SectionService : ISectionService
             };
         }
     }
+
 
     public async Task<IBaseResponse<GetSectionDTO>> GetById(long id)
     {
@@ -130,6 +134,7 @@ public class SectionService : ISectionService
         }
     }
 
+
     public async Task<IBaseResponse<GetSectionDTO>> Remove(long id)
     {
         Log.Information("Removing section with ID: {SectionId}", id);
@@ -149,7 +154,7 @@ public class SectionService : ISectionService
 
             data.IsDeleted = true;
             data.DeleteAt = DateTime.UtcNow;
-
+            await _rep.Delete(data);
             var dto = new GetSectionDTO()
             {
                 Id = data.Id,
@@ -174,6 +179,7 @@ public class SectionService : ISectionService
             };
         }
     }
+
 
     public async Task<IBaseResponse<GetSectionDTO>> Update(long id, SectionDTO vm)
     {

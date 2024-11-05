@@ -17,19 +17,21 @@ public class UserService : IUserService
 {
     private readonly IBaseRepository<Users> _rep;
 
+
     public UserService(IBaseRepository<Users> rep)
     {
         _rep = rep;
     }
 
+
     public async Task<IBaseResponse<GetUserDTO>> Create(CreateUserDTO vm)
     {
         try
         {
-            var existingUser = await _rep.GetAll().SingleOrDefaultAsync(x => x.Email == vm.Email);
+            var existingUser = await _rep.GetAll().SingleOrDefaultAsync(x => x.UserName == vm.UserName && !x.IsDeleted);
             if (existingUser != null)
             {
-                Log.Warning("User creation failed: User with email {Email} already exists.", vm.Email);
+                Log.Warning("User creation failed: User with UserName {UserName} already exists.", vm.UserName);
                 return new BaseResponse<GetUserDTO>
                 {
                     Message = "User already exists with the provided email.",
@@ -40,8 +42,7 @@ public class UserService : IUserService
             var newUser = new Users()
             {
                 CreateAt = DateTime.UtcNow,
-                Email = vm.Email,
-                FullName = $"{vm.UserName} {vm.UserSurname}",
+                UserName = vm.UserName,
                 Password = vm.Password,
                 Role = Domain.Enum.Role.User,
             };
@@ -52,10 +53,8 @@ public class UserService : IUserService
             var dto = new GetUserDTO()
             {
                 id = newUser.Id,
-                Email = newUser.Email,
-                FullName = newUser.FullName,
+                UserName = newUser.UserName,
             };
-
             return new BaseResponse<GetUserDTO>
             {
                 Data = dto,
@@ -73,6 +72,7 @@ public class UserService : IUserService
             };
         }
     }
+
 
     public async Task<IBaseResponse<GetUserDTO>> Delete(long id)
     {
@@ -101,13 +101,13 @@ public class UserService : IUserService
 
             userToDelete.IsDeleted = true;
             userToDelete.DeleteAt = DateTime.UtcNow;
+            await _rep.Delete(userToDelete);
             Log.Information("User with ID {UserId} marked as deleted.", userToDelete.Id);
 
             var vm = new GetUserDTO()
             {
                 id = userToDelete.Id,
-                Email = userToDelete.Email,
-                FullName = userToDelete.FullName,
+                UserName = userToDelete.UserName,
             };
 
             return new BaseResponse<GetUserDTO>
@@ -128,38 +128,6 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<IBaseResponse<ICollection<GetUserDTO>>> GetAll()
-    {
-        try
-        {
-            var users = await _rep.GetAll()
-               .Where(x => !x.IsDeleted)
-               .Select(item => new GetUserDTO
-               {
-                   id = item.Id,
-                   Email = item.Email,
-                   FullName = item.FullName,
-               })
-               .ToListAsync();
-
-            Log.Information("Retrieved all users. Count: {Count}", users.Count);
-            return new BaseResponse<ICollection<GetUserDTO>>()
-            {
-                Data = users,
-                Message = "Users retrieved successfully.",
-                StatusCode = Domain.Enum.StatusCode.OK
-            };
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "An error occurred while retrieving all users.");
-            return new BaseResponse<ICollection<GetUserDTO>>()
-            {
-                Message = "An error occurred while retrieving users: " + ex.Message,
-                StatusCode = Domain.Enum.StatusCode.InternalServerError
-            };
-        }
-    }
 
     public async Task<IBaseResponse<GetUserDTO>> GetById(long id)
     {
@@ -178,8 +146,7 @@ public class UserService : IUserService
 
             var vm = new GetUserDTO()
             {
-                Email = user.Email,
-                FullName = user.FullName,
+                UserName = user.UserName,
                 id = user.Id
             };
 
@@ -202,6 +169,7 @@ public class UserService : IUserService
         }
     }
 
+
     public async Task<IBaseResponse<GetUserDTO>> Update(long id, UpdateUserDTO vm)
     {
         try
@@ -217,16 +185,14 @@ public class UserService : IUserService
                 };
             }
 
-            userToUpdate.FullName = vm.FullName;
-            userToUpdate.Email = vm.Email;
+            userToUpdate.UserName = vm.UserName;
 
             await _rep.Update(userToUpdate);
             Log.Information("User with ID {UserId} updated successfully.", userToUpdate.Id);
 
             var dto = new GetUserDTO()
             {
-                FullName = userToUpdate.FullName,
-                Email = userToUpdate.Email,
+                UserName = userToUpdate.UserName,
             };
 
             return new BaseResponse<GetUserDTO>
@@ -247,16 +213,17 @@ public class UserService : IUserService
         }
     }
 
+
     public async Task<IBaseResponse<string>> LogIn(LogInDTO vm)
     {
         try
         {
             var user = await _rep.GetAll()
-                .FirstOrDefaultAsync(x => x.FullName == vm.FullName && !x.IsDeleted);
+                .FirstOrDefaultAsync(x => x.UserName == vm.UserName && !x.IsDeleted);
 
             if (user == null || vm.Password != user.Password)
             {
-                Log.Warning("Login failed: Invalid username or password for {Username}.", vm.FullName);
+                Log.Warning("Login failed: Invalid username or password for {Username}.", vm.UserName);
                 return new BaseResponse<string>
                 {
                     Message = "Invalid username or password.",
@@ -269,7 +236,7 @@ public class UserService : IUserService
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[] {
-                    new Claim(ClaimTypes.Name, user.FullName),
+                    new Claim(ClaimTypes.Name, user.UserName),
                     new Claim("UserId", user.Id.ToString()),
                     new Claim(ClaimTypes.Role, user.Role.ToString())
                 }),
@@ -280,7 +247,7 @@ public class UserService : IUserService
             var token = tokenHandler.CreateToken(tokenDescriptor);
             var tokenString = tokenHandler.WriteToken(token);
 
-            Log.Information("User {Username} logged in successfully.", user.FullName);
+            Log.Information("User {Username} logged in successfully.", user.UserName);
             return new BaseResponse<string>
             {
                 Message = "Login successful.",
@@ -298,6 +265,7 @@ public class UserService : IUserService
             };
         }
     }
+
 
     public async Task<IBaseResponse<GetUserDTO>> ChangeRole(long id, Role role)
     {
@@ -321,8 +289,7 @@ public class UserService : IUserService
             var dto = new GetUserDTO()
             {
                 id = user.Id,
-                FullName = user.FullName,
-                Email = user.Email,
+                UserName = user.UserName,
             };
 
             return new BaseResponse<GetUserDTO>
@@ -342,6 +309,7 @@ public class UserService : IUserService
             };
         }
     }
+
 
     public async Task<IBaseResponse<GetUserDTO>> ChangePassword(long id, ChangePasswordDTO vm)
     {
@@ -387,8 +355,7 @@ public class UserService : IUserService
             var dto = new GetUserDTO()
             {
                 id = user.Id,
-                FullName = user.FullName,
-                Email = user.Email,
+                UserName = user.UserName,
             };
 
             return new BaseResponse<GetUserDTO>
@@ -409,4 +376,69 @@ public class UserService : IUserService
         }
     }
 
+
+    public async Task<IBaseResponse<ICollection<GetUserDTO>>> GetAdmins()
+    {
+        try
+        {
+            var users = await _rep.GetAll()
+               .Where(x => !x.IsDeleted && x.Role == Role.Admin)
+               .Select(item => new GetUserDTO
+               {
+                   id = item.Id,
+                   UserName = item.UserName,
+               })
+               .ToListAsync();
+
+            Log.Information("Retrieved all users. Count: {Count}", users.Count);
+            return new BaseResponse<ICollection<GetUserDTO>>()
+            {
+                Data = users,
+                Message = "Users retrieved successfully.",
+                StatusCode = Domain.Enum.StatusCode.OK
+            };
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "An error occurred while retrieving all users.");
+            return new BaseResponse<ICollection<GetUserDTO>>()
+            {
+                Message = "An error occurred while retrieving users: " + ex.Message,
+                StatusCode = Domain.Enum.StatusCode.InternalServerError
+            };
+        }
+    }
+
+
+    public async Task<IBaseResponse<ICollection<GetUserDTO>>> GetUsers()
+    {
+        try
+        {
+            var users = await _rep.GetAll()
+               .Where(x => !x.IsDeleted && x.Role == Role.User)
+               .Select(item => new GetUserDTO
+               {
+                   id = item.Id,
+                   UserName = item.UserName,
+               })
+               .ToListAsync();
+
+            Log.Information("Retrieved all users. Count: {Count}", users.Count);
+            return new BaseResponse<ICollection<GetUserDTO>>()
+            {
+                Data = users,
+                Message = "Users retrieved successfully.",
+                StatusCode = Domain.Enum.StatusCode.OK
+            };
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "An error occurred while retrieving all users.");
+            return new BaseResponse<ICollection<GetUserDTO>>()
+            {
+                Message = "An error occurred while retrieving users: " + ex.Message,
+                StatusCode = Domain.Enum.StatusCode.InternalServerError
+            };
+        }
+    }
 }

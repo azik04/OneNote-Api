@@ -18,6 +18,7 @@ public class UserRepository : IBaseRepository<Users>
         return true;
     }
 
+
     public async Task<bool> Delete(Users entity)
     {
         _db.Users.Remove(entity);
@@ -25,7 +26,9 @@ public class UserRepository : IBaseRepository<Users>
         return true;
     }
 
+
     public IQueryable<Users> GetAll() => _db.Users.AsQueryable();
+
 
     public async Task<Users> Update(Users entity)
     {

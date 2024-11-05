@@ -35,6 +35,7 @@ public static class Initializer
         services.AddScoped<IFolderService, FolderService>();
         services.AddScoped<INoteService, NoteService>();
         services.AddScoped<ISectionService, SectionService>();
+        services.AddScoped<IRandomPasswordService, RandomPasswordService>();
     }
 
 

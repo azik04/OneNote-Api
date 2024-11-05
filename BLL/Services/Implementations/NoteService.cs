@@ -13,11 +13,13 @@ public class NoteService : INoteService
     private readonly IBaseRepository<Notes> _rep;
     private readonly IBaseRepository<Folders> _frep;
 
+
     public NoteService(IBaseRepository<Notes> rep, IBaseRepository<Folders> frep)
     {
         _rep = rep;
         _frep = frep;
     }
+
 
     public async Task<IBaseResponse<GetNoteDTO>> Create(NoteDTO vm)
     {
@@ -50,6 +52,8 @@ public class NoteService : INoteService
                 CreateAt = DateTime.UtcNow,
                 Name = vm.Name,
                 FolderId = vm.FolderId,
+                IpAdress = vm.IpAdress,
+                Note = vm.Note,
                 Password = vm.Password,
             };
 
@@ -58,7 +62,9 @@ public class NoteService : INoteService
             var dto = new GetNoteDTO()
             {
                 Name = data.Name,
-                Password = data.Password
+                Password = data.Password,
+                IpAdress = data.IpAdress,
+                Note = data.Note,
             };
 
             Log.Information("Note successfully created with ID {NoteId}", data.Id);
@@ -80,6 +86,7 @@ public class NoteService : INoteService
         }
     }
 
+
     public async Task<IBaseResponse<ICollection<GetNoteDTO>>> GetAll()
     {
         try
@@ -91,6 +98,8 @@ public class NoteService : INoteService
                    Id = item.Id,
                    Name = item.Name,
                    Password = item.Password,
+                   IpAdress= item.IpAdress,
+                   Note = item.Note,
                })
                .ToListAsync();
 
@@ -113,6 +122,7 @@ public class NoteService : INoteService
         }
     }
 
+
     public async Task<IBaseResponse<ICollection<GetNoteDTO>>> GetByFolder(long folderId)
     {
         try
@@ -124,6 +134,8 @@ public class NoteService : INoteService
                    Id = item.Id,
                    Name = item.Name,
                    Password = item.Password,
+                   IpAdress= item.IpAdress,
+                   Note = item.Note,
                })
                .ToListAsync();
 
@@ -146,6 +158,7 @@ public class NoteService : INoteService
         }
     }
 
+
     public async Task<IBaseResponse<GetNoteDTO>> GetById(long id)
     {
         try
@@ -166,7 +179,9 @@ public class NoteService : INoteService
             {
                 Name = data.Name,
                 Password = data.Password,
-                Id = data.Id
+                Id = data.Id,
+                IpAdress = data.IpAdress,
+                Note = data.Note,
             };
 
             Log.Information("Note successfully retrieved with ID: {NoteId}", id);
@@ -188,6 +203,7 @@ public class NoteService : INoteService
         }
     }
 
+
     public async Task<IBaseResponse<GetNoteDTO>> Remove(long id)
     {
         try
@@ -206,12 +222,15 @@ public class NoteService : INoteService
 
             data.DeleteAt = DateTime.UtcNow;
             data.IsDeleted = true;
+            await _rep.Delete(data);
 
             var vm = new GetNoteDTO()
             {
                 Name = data.Name,
                 Password = data.Password,
-                Id = data.Id
+                Id = data.Id,
+                IpAdress = data.IpAdress,
+                Note = data.Note,
             };
 
             Log.Information("Note successfully removed with ID: {NoteId}", id);
@@ -233,6 +252,7 @@ public class NoteService : INoteService
         }
     }
 
+
     public async Task<IBaseResponse<GetNoteDTO>> Update(long id, NoteDTO vm)
     {
         try
@@ -250,6 +270,8 @@ public class NoteService : INoteService
 
             item.Name = vm.Name;
             item.Password = vm.Password;
+            item.IpAdress = vm.IpAdress;
+            item.Note = vm.Note;
 
             await _rep.Update(item);
 
@@ -257,7 +279,9 @@ public class NoteService : INoteService
             {
                 Name = item.Name,
                 Password = item.Password,
-                Id = item.Id
+                Id = item.Id,
+                IpAdress = item.IpAdress,
+                Note = vm.Note,
             };
 
             Log.Information("Note successfully updated with ID: {NoteId}", id);

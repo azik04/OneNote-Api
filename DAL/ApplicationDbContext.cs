@@ -25,8 +25,7 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasData(new Users
             {
-                Email = "Admin@gmail.com",
-                FullName = "Admin",
+                UserName = "Admin",
                 Password = "Admin123",
                 Id = 1,
                 Role = Domain.Enum.Role.Admin

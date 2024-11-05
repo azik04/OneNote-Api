@@ -35,10 +35,22 @@ public class AdminController : ControllerBase
 
 
     [Authorize(Policy = "Admin")]
-    [HttpGet]
-    public async Task<IActionResult> GetAll()
+    [HttpGet("Admins")]
+    public async Task<IActionResult> GetAdmins()
     {
-        var data = await _service.GetAll();
+        var data = await _service.GetAdmins();
+        if (data.StatusCode == Domain.Enum.StatusCode.OK)
+            return Ok(data);
+
+        return BadRequest(data);
+    }
+
+
+    [Authorize(Policy = "Admin")]
+    [HttpGet("Users")]
+    public async Task<IActionResult> GetUsers()
+    {
+        var data = await _service.GetUsers();
         if (data.StatusCode == Domain.Enum.StatusCode.OK)
             return Ok(data);
 

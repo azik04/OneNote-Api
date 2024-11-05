@@ -79,6 +79,7 @@ public class NoteController : ControllerBase
         return BadRequest(data);
     }
 
+
     [Authorize(Policy = "User")]
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(long id, NoteDTO vm)
